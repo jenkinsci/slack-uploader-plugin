@@ -17,7 +17,7 @@
   </repositories>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>SlackBuilder</artifactId>
-    <version>1.1</version>
+    <version>1.1-SNAPSHOT</version>
     <name>Slack Upload Plugin</name>
     <description>A post-build uploader that uploads files to slack generated during build process</description>
 <!--    <url>http://wiki.jenkins-ci.org/display/JENKINS/Slack+Uploader</url>-->
@@ -27,7 +27,7 @@
         <connection>scm:git:ssh://git@github.com:jenkinsci/slack-uploader-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com:jenkinsci/slack-uploader-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/slack-uploader-plugin</url>
-        <tag>SlackBuilder-1.1</tag>
+        <tag>head</tag>
     </scm>
     
     <developers>
