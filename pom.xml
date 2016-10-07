@@ -22,6 +22,13 @@
     <description>A post-build uploader that uploads files to slack generated during build process</description>
 <!--    <url>http://wiki.jenkins-ci.org/display/JENKINS/Slack+Uploader</url>-->
     <packaging>hpi</packaging>
+
+    <scm>
+        <connection>scm:git:ssh://git@github.com:jenkinsci/slack-uploader-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:jenkinsci/slack-uploader-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/slack-uploader-plugin</url>
+        <tag>head</tag>
+    </scm>
     
     <developers>
         <developer>
