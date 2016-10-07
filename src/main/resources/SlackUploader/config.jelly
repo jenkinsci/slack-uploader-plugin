@@ -1,11 +1,14 @@
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
   <f:entry title="${%Add channel}" field="channel">
+	<?jelly escape-by-default='true'?>
         <f:textbox name="channel" value="${instance.getChannel()}"/>
   </f:entry>
 <f:entry title="${%Add token}" field="token">
+	<?jelly escape-by-default='true'?>
         <f:textbox name="token" value="${instance.getToken()}"/>
   </f:entry>
 <f:entry title="${%Enter path to file directory}" field="filePath">
+	<?jelly escape-by-default='true'?>
         <f:textbox name="filePath" value="${instance.getFilePath()}"/>
   </f:entry>
 
