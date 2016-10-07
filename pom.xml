@@ -50,8 +50,4 @@
   	 <compile.java.version>1.7</compile.java.version>
     	 <hudson.plugin.version>1</hudson.plugin.version>
    </properties>
-
-  <scm>
-    <tag>SlackBuilder-1.0</tag>
-  </scm>
 </project>
