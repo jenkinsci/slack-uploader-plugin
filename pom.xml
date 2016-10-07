@@ -27,7 +27,6 @@
         <connection>scm:git:ssh://git@github.com:jenkinsci/slack-uploader-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com:jenkinsci/slack-uploader-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/slack-uploader-plugin</url>
-        <tag>head</tag>
     </scm>
     
     <developers>
