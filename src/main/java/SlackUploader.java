@@ -104,10 +104,6 @@ public class SlackUploader extends Recorder {
     @Extension
     public static final class SlackUploaderDescriptor extends BuildStepDescriptor<Publisher> {
         
-        private String channel;
-        private String token;
-        private String filePath;
-        
         public SlackUploaderDescriptor(){
             load();
         }
@@ -161,17 +157,6 @@ public class SlackUploader extends Recorder {
             return new SlackUploader(channel, token, filePath);
         }
 
-        public String getChannel() {
-            return channel;
-        }
-
-        public String getToken() {
-            return token;
-        }
-
-        public String getFilePath() {
-            return filePath;
-        }
         
     }
 }

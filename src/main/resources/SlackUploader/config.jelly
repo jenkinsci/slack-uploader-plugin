@@ -1,5 +1,5 @@
+<?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
- <?jelly escape-by-default='true'?>
   <f:entry title="${%Add channel}" field="channel">
         <f:textbox name="channel" value="${instance.getChannel()}"/>
   </f:entry>
