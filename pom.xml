@@ -14,7 +14,7 @@
     </repository>
   </repositories>
     <artifactId>slack-uploader</artifactId>
-    <version>1.3-SNAPSHOT</version>
+    <version>1.4-SNAPSHOT</version>
     <name>Slack Upload Plugin</name>
     <description>A post-build uploader that uploads files to slack generated during build process</description>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/Slack+File+Uploader+Plugin</url>
