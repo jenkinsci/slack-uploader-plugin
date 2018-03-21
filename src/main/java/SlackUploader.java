@@ -129,7 +129,7 @@ public class SlackUploader extends Recorder {
             }
             for (int i = 0; i< channel.length(); i++) {
                 if (channel.charAt(i) == ',' && channel.charAt(i+1) !='#') {
-                    return FormValidation.error("Channels should be specified wihtout anything between comma. eg - #ch1,#ch2,#ch3");
+                    return FormValidation.error("Channels should be specified without anything between comma. eg - #ch1,#ch2,#ch3");
                 }
             }
             return FormValidation.ok();
