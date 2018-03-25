@@ -9,3 +9,8 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
+
+### OSX template
+.DS_Store
+.AppleDouble
+.LSOverride
