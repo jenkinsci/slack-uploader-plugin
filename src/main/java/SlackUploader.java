@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -68,13 +69,16 @@ public class SlackUploader extends Recorder {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+        //Get the environment
+        final EnvVars env = build.getEnvironment(listener);
+
         //To change body of generated methods, choose Tools | Templates.
         LogOutput log = new LogOutput();
         Runtime runtime = Runtime.getRuntime();
         Process process = null;
 
         try {
-            String script = generateScript();
+            String script = generateScript(env);
             
             process = runScript(runtime, script);
             
@@ -92,10 +96,10 @@ public class SlackUploader extends Recorder {
 
     
 
-    private String generateScript() {
-        String loop = "for file in $(ls " + filePath + ");";
+    private String generateScript(EnvVars env) {
+        String loop = "for file in $(ls " + env.expand(filePath) + ");";
         loop+="do ";
-        String curlRequest = loop + "curl -F file=@$file -F filename=" + fileName
+        String curlRequest = loop + "curl -F file=@$file -F filename=" + env.expand(fileName)
                 +" -F channels=" + channel + " -F token=" + token + " https://slack.com/api/files.upload ;";
         String loopDone = curlRequest + "done;";
         return loopDone;
