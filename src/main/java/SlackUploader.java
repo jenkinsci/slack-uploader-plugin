@@ -198,9 +198,14 @@ public class SlackUploader extends Recorder {
 
             final int i = filePath.indexOf('*');
 
+            final File tmpFile = new File(filePath);
+
             if (-1 != i) {
                 dirName = filePath.substring(0, i);
                 includeMask = filePath.substring(i);
+            } else if (tmpFile.exists() && tmpFile.isFile()) {
+                dirName = tmpFile.getParentFile().getPath();
+                includeMask = tmpFile.getName();
             }
 
             listener.getLogger().println(String.format("Using dirname=%s and includeMask=%s", dirName, includeMask));
