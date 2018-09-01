@@ -5,19 +5,35 @@
  */
 
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.FreeStyleProject;
+import hudson.remoting.Callable;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import hudson.util.DirScanner;
+import hudson.util.FileVisitor;
 import hudson.util.FormValidation;
+import jenkins.security.MasterToSlaveCallable;
+
+import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.ServletException;
 import net.sf.json.JSONObject;
+
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.tokenmacro.MacroEvaluationException;
+import org.jenkinsci.plugins.tokenmacro.TokenMacro;
+import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -33,7 +49,7 @@ public class SlackUploader extends Recorder {
     private final String token;
     private final String filePath;
     private static final String CHOICE_OF_SHELL = "/bin/bash";
-    
+
     @DataBoundConstructor
     public SlackUploader(String channel, String token, String filePath) {
         super();
@@ -53,8 +69,8 @@ public class SlackUploader extends Recorder {
     public String getToken() {
         return token;
     }
-    
-    
+
+
     @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
@@ -63,18 +79,15 @@ public class SlackUploader extends Recorder {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         //To change body of generated methods, choose Tools | Templates.
-        LogOutput log = new LogOutput();
         Runtime runtime = Runtime.getRuntime();
         Process process = null;
 
+        LogOutput log = new LogOutput();
+
         try {
-            String script = generateScript();
-            
-            process = runScript(runtime, script);
-            
-            log.logOutput(listener, process);
+            generateScript(build, launcher, listener);
         } catch (Throwable cause) {
-            log.logOutput(listener, process);
+            throw new RuntimeException(cause);
         }
         return true;
     }
@@ -84,14 +97,12 @@ public class SlackUploader extends Recorder {
         return process;
     }
 
-    
+    private void generateScript(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener) throws Throwable {
+        String mask = TokenMacro.expandAll(build, listener, filePath);
 
-    private String generateScript() {
-        String loop = "for file in $(ls " + filePath + ");";
-        loop+="do ";
-        String curlRequest = loop + "curl -F file=@$file -F channels=" + channel +" -F token=" + token + " https://slack.com/api/files.upload ;";
-        String loopDone = curlRequest + "done;";
-        return loopDone;
+        listener.getLogger().println(String.format("Invoking Uploader (channel=%s, filePath=%s)", channel, filePath));
+
+        launcher.getChannel().callAsync(new FileUploadRunner(listener, mask, channel, token)).get();
     }
 
     @Override
@@ -158,5 +169,64 @@ public class SlackUploader extends Recorder {
         }
 
         
+    }
+
+    public static class FileUploadRunner extends MasterToSlaveCallable<Boolean, Throwable> implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private final String filePath;
+
+        private final String channel;
+
+        private final String token;
+
+        private final BuildListener listener;
+
+        public FileUploadRunner(BuildListener listener, String filePath, String channel, String token) {
+            this.listener = listener;
+            this.filePath = filePath;
+            this.channel = channel;
+            this.token = token;
+        }
+
+        @Override
+        public Boolean call() throws Throwable {
+            final List<String> commandList = new ArrayList<>();
+
+            String dirName = filePath;
+            String includeMask = "**/*";
+
+            final int i = filePath.indexOf('*');
+
+            if (-1 != i) {
+                dirName = filePath.substring(0, i);
+                includeMask = filePath.substring(i);
+            }
+
+            listener.getLogger().println(String.format("Using dirname=%s and includeMask=%s", dirName, includeMask));
+
+            new DirScanner.Glob(includeMask, null).scan(new File(dirName), new FileVisitor() {
+                @Override
+                public void visit(File f, String relativePath) throws IOException {
+                    if (f.isFile()) {
+                        final String command = String.format("curl -F file=@\"%s\" -F channels=\"%s\" -F token=\"%s\" https://slack.com/api/files.upload", f.getAbsolutePath(), channel, token);
+
+                        listener.getLogger().println("Adding file " + f.getAbsolutePath());
+
+                        commandList.add(command);
+                    }
+                }
+            });
+
+            String allCommands = StringUtils.join(commandList, " ; ");
+
+            if (commandList.isEmpty()) {
+                listener.getLogger().println("No files found for mask=" + this.filePath);
+            }
+
+            Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c", allCommands});
+
+            return ! commandList.isEmpty();
+        }
     }
 }
