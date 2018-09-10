@@ -99,8 +99,9 @@ public class SlackUploader extends Recorder {
     private String generateScript(EnvVars env) {
         String loop = "for file in $(ls " + env.expand(filePath) + ");";
         loop+="do ";
-        String curlRequest = loop + "curl -F file=@$file -F filename=" + env.expand(fileName)
-                +" -F channels=" + channel + " -F token=" + token + " https://slack.com/api/files.upload ;";
+        String expandedName = env.expand(fileName);
+        String curlRequest = loop + "curl -F file=@$file -F filename=" + expandedName
+                 +" -F channels=" + channel + " -F token=" + token + " https://slack.com/api/files.upload ;";
         String loopDone = curlRequest + "done;";
         return loopDone;
     }
