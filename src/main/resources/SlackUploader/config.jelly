@@ -3,11 +3,14 @@
   <f:entry title="${%Add channel}" field="channel">
         <f:textbox name="channel" value="${instance.getChannel()}"/>
   </f:entry>
-<f:entry title="${%Add token}" field="token">
+  <f:entry title="${%Add token}" field="token">
         <f:textbox name="token" value="${instance.getToken()}"/>
   </f:entry>
-<f:entry title="${%Enter path to file directory}" field="filePath">
+  <f:entry title="${%Enter path to file directory}" field="filePath">
         <f:textbox name="filePath" value="${instance.getFilePath()}"/>
+  </f:entry>
+  <f:entry title="${%Enter name to file }" field="fileName">
+        <f:textbox name="fileName" value="${instance.getFileName()}"/>
   </f:entry>
 
 </j:jelly>

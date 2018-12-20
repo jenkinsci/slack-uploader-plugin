@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -32,14 +33,16 @@ public class SlackUploader extends Recorder {
     private final String channel;
     private final String token;
     private final String filePath;
+    private final String fileName;
     private static final String CHOICE_OF_SHELL = "/bin/bash";
     
     @DataBoundConstructor
-    public SlackUploader(String channel, String token, String filePath) {
+    public SlackUploader(String channel, String token, String filePath, String fileName) {
         super();
         this.channel = channel;
         this.token = token;
         this.filePath = filePath;
+        this.fileName = fileName;
     }
 
     public String getChannel() {
@@ -48,6 +51,10 @@ public class SlackUploader extends Recorder {
 
     public String getFilePath() {
         return filePath;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 
     public String getToken() {
@@ -62,13 +69,16 @@ public class SlackUploader extends Recorder {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+        //Get the environment
+        final EnvVars env = build.getEnvironment(listener);
+
         //To change body of generated methods, choose Tools | Templates.
         LogOutput log = new LogOutput();
         Runtime runtime = Runtime.getRuntime();
         Process process = null;
 
         try {
-            String script = generateScript();
+            String script = generateScript(env);
             
             process = runScript(runtime, script);
             
@@ -86,10 +96,12 @@ public class SlackUploader extends Recorder {
 
     
 
-    private String generateScript() {
-        String loop = "for file in $(ls " + filePath + ");";
+    private String generateScript(EnvVars env) {
+        String loop = "for file in $(ls " + env.expand(filePath) + ");";
         loop+="do ";
-        String curlRequest = loop + "curl -F file=@$file -F channels=" + channel +" -F token=" + token + " https://slack.com/api/files.upload ;";
+        String expandedName = env.expand(fileName);
+        String curlRequest = loop + "curl -F file=@$file -F filename=" + expandedName
+                 +" -F channels=" + channel + " -F token=" + token + " https://slack.com/api/files.upload ;";
         String loopDone = curlRequest + "done;";
         return loopDone;
     }
@@ -135,8 +147,10 @@ public class SlackUploader extends Recorder {
             return FormValidation.ok();
         }
         
-        public FormValidation doCheckFilePath(@QueryParameter String filePath) {
-            if (filePath.length() == 0) {
+        public FormValidation doCheckFilePath(@QueryParameter String filePath, @QueryParameter String fileName) {
+            if (fileName.length() != 0 && filePath.contains("*")) {
+                return FormValidation.error("Do not use regex if you have set a filename");
+            } else if (filePath.length() == 0) {
                 return FormValidation.error("Cannot be empty");
             }
             return FormValidation.ok();
@@ -154,7 +168,8 @@ public class SlackUploader extends Recorder {
             String channel = req.getParameter("channel");
             String token = req.getParameter("token");
             String filePath = req.getParameter("filePath");
-            return new SlackUploader(channel, token, filePath);
+            String fileName = req.getParameter("fileName");
+            return new SlackUploader(channel, token, filePath, fileName);
         }
 
         
